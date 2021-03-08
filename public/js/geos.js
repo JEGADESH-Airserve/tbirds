@@ -44,9 +44,7 @@ function getAllGeosContainingGeoID(geoIDs) {
 }
 
 // load geos, start app
-// cloud-/data/geos.json
-//Local--http://localhost:3000/geos.json'
-fetch('/data/geos.json').then(resp => resp.json()).then(geos => {
+fetch('http://localhost:3000/data/geos.json').then(resp => resp.json()).then(geos => {
     GEOS = geos;
 
     // exclude Telangana, the top-level state
@@ -76,3 +74,4 @@ fetch('/data/geos.json').then(resp => resp.json()).then(geos => {
     // run app main
     main();
 });
+

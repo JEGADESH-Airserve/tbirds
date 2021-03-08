@@ -6,7 +6,7 @@ var jwt = require('jsonwebtoken');
 
 require('dotenv').config({ path: './SECRET/config.env' })
 const jwtKey = process.env.Secretkey;
-const jwtExpirySeconds = 300;
+const jwtExpirySeconds = 3;
 router.post('/', (req, res) => {
     let loginuser = req.body.username;
     let loginpassword = req.body.password;

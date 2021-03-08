@@ -7,21 +7,45 @@ const {
 const html = window.jdom;
 
 const PROPERTY_TYPES = [{
-    name: 'Aggregate Stone',
-    color: 'rgb(31, 78, 120)',
+    name: 'Agricultural Land - Patta Land',
+    color: 'rgb(40, 205, 65)',
     textColor: '#000',
 }, {
-    name: 'Lime Stone',
+    name: 'Agricultural Land - Lavan Patta',
+    color: 'rgb(144, 238, 144)',
+    textColor: '#000',
+}, {
+    name: 'Water Body',
+    color: 'rgb(183, 236, 255)',
+    textColor: '#000',
+}, {
+    name: 'Endowments Land',
     color: 'rgb(255, 217, 0)',
     textColor: '#000',
 }, {
-    name: 'Black Granite',
-    color: 'rgb(131, 60, 12)',
+    name: 'Forest Land',
+    color: 'rgb(34, 139, 34)',
+    textColor: '#fff',
+}, {
+    name: 'Commercial Property',
+    color: 'rgb(31, 78, 120)',
+    textColor: '#fff',
+}, {
+    name: 'Residential Property',
+    color: 'rgb(69, 146, 230)',
+    textColor: '#fff',
+}, {
+    name: 'Industrial Area',
+    color: 'rgb(255, 235, 175)',
     textColor: '#000',
 }, {
-    name: 'Quartz',
-    color: 'rgb(222, 132, 169)',
-    textColor: '#000',
+    name: 'Government Land',
+    color: 'rgb(222, 132, 168)',
+    textColor: '#fff',
+}, {
+    name: 'Government Building',
+    color: 'rgb(222, 132, 168)',
+    textColor: '#fff',
 }];
 
 function removeFromArray(arr, item) {
@@ -33,14 +57,13 @@ function removeFromArray(arr, item) {
 
 function getIndicatorColor(property) {
     const propertyType = property.get('PROPERTY_TYPE');
-    const indicator = property.get('INSPECTION_INDICATOR');
+    const indicator = property.get('Inspection Indicator');
 
-    // if (indicator == 'V') {
-    //     return '#eb5065';
-    // }
+    if (indicator == 'V') {
+        return '#eb5065';
+    }
 
-    for (const { name, color }
-        of PROPERTY_TYPES) {
+    for (const {name, color} of PROPERTY_TYPES) {
         if (propertyType.includes(name)) {
             return color;
         }
@@ -64,13 +87,13 @@ const processPoints = (geometry, callback) => {
 const BOUNDARY_STYLES = {
     hybrid: {
         fillColor: '#bbbbbb',
-        strokeColor: 'e0e0e0',
+        strokeColor: '#e0e0e0',
         strokeWeight: 1,
         zIndex: 100,
     },
     satellite: {
         fillColor: '#bbbbbb',
-        strokeColor: 'e0e0e0',
+        strokeColor: '#e0e0e0',
         strokeWeight: 1,
         zIndex: 100,
     },
@@ -118,37 +141,36 @@ function titleCase(s) {
 function trimTrailingDecimals(numberString) {
     return numberString.replace(/\.\d+$/, '');
 }
-// cloud-/data/properties.json
-//Local=http://localhost:3000/properties.json
+
 async function fetchData() {
-    const data = fetch('/data/properties.json')
+    const data = fetch('http://localhost:3000/data/properties.json')
         .then(req => req.json())
         .then(places => places.map((p, i) => {
-            let id = p['MINE_ID'];
+            let id = p['BHOOMI_ID'];
             if (id == 'N/A') {
-                id = p['MINE_ID'];
+                id = p['MAKAAN_ID'];
             }
             if (id == 'N/A') {
                 id = p['OLD ID'];
             }
-
             return {
                 id: id,
                 lat: 45 + i / 10,
                 lng: -70 + i / 10,
                 ...p,
                 // Some property types have extra whitespace around the text...
-                'PROPERTY_TYPE': p['MINE_TYPE'].trim(),
-                'MINE_AREA_ACRES': trimTrailingDecimals(p['MINE_AREA_ACRES'])
+                'PROPERTY_TYPE': p['PROPERTY_TYPE'].trim(),
+                'PLOT_AREA': trimTrailingDecimals(p['PLOT_AREA']),
+                'BUILT_UP_AREA': trimTrailingDecimals(p['BUILT_UP_AREA']),
             }
         }))
         .catch(e => {
             alert(`Error fetching data: ${e}`);
         });
     const places = await data;
-    console.log(places);
+
     // Sidebar should list properties by plot size, desc
-    const area = place => parseFloat(place['MINE_AREA_ACRES'].replace(',', ''));
+    const area = place => parseFloat(place['PLOT_AREA'].replace(',', ''));
     return places.sort((a, b) => {
         if (area(a) < area(b)) return 1;
         if (area(a) > area(b)) return -1;
@@ -169,22 +191,22 @@ class Property extends Record {
         });
     }
     getArea() {
-        return parseFloat(this.get('MINE_AREA_ACRES').replace(',', ''));
+        return parseFloat(this.get('PLOT_AREA').replace(',', ''));
     }
     formattedPlotArea() {
-        const plotArea = this.get('MINE_AREA_ACRES');
+        const plotArea = this.get('PLOT_AREA');
         if (plotArea == 'N/A') {
             return plotArea;
         } else {
-            return plotArea + ' Acres';
+            return plotArea + 'm²';
         }
     }
     formattedBuiltUpArea() {
-        const plotArea = this.get('TOTAL_EXCAVATED_AREA');
+        const plotArea = this.get('BUILT_UP_AREA');
         if (plotArea == 'N/A') {
             return plotArea;
         } else {
-            return plotArea + 'Acres';
+            return plotArea + 'm²';
         }
     }
     getCenter() {
@@ -198,7 +220,7 @@ class Property extends Record {
         return new google.maps.LatLng(lat, lng);
     }
     imageURL() {
-        return `https://airserve-m-360.web.app/images/reports/${this.get('ID')}.JPG`;
+        return `https://tbirdsalpha.web.app/images/properties/${this.get('ID')}.JPG`;
     }
 }
 
@@ -225,11 +247,11 @@ class SearchComplete extends Component {
             switch (evt.key) {
                 case 'ArrowUp':
                     evt.preventDefault();
-                    this._suggestionIdx--;
+                    this._suggestionIdx --;
                     break;
                 case 'ArrowDown':
                     evt.preventDefault();
-                    this._suggestionIdx++;
+                    this._suggestionIdx ++;
                     break;
                 case 'Enter':
                     if (this._suggestionIdx >= 0) {
@@ -264,12 +286,12 @@ class SearchComplete extends Component {
         this.completions = completions;
     }
     compose() {
-            function Suggestion(term, idx) {
-                if (idx == this._suggestionIdx) {
-                    this._suggestionValue = term;
-                }
-                const matchIdx = term.toLowerCase().indexOf(this.value.toLowerCase());
-                return html `<div class="SearchComplete-suggestion ${idx == this._suggestionIdx ? 'selected' : ''}"
+        function Suggestion(term, idx) {
+            if (idx == this._suggestionIdx) {
+                this._suggestionValue = term;
+            }
+            const matchIdx = term.toLowerCase().indexOf(this.value.toLowerCase());
+            return html`<div class="SearchComplete-suggestion ${idx == this._suggestionIdx ? 'selected' : ''}"
                 onclick=${() => {
                     this.value = term;
                     this.updateInput(this.value);
@@ -277,9 +299,9 @@ class SearchComplete extends Component {
                 }}>
                 ${term.substr(0, matchIdx)}<strong>${term.substr(matchIdx, this.value.length)}</strong>${term.substr(matchIdx + this.value.length)}
             </div>`;
-            }
+        }
 
-            return html `<div class="FilterBar-search">
+        return html`<div class="FilterBar-search">
             <div class="SearchComplete">
                 <input type="text"
                     class="FilterBar-search-input outlined padded"
@@ -292,9 +314,9 @@ class SearchComplete extends Component {
                 ${this._focused ? html`
                     <div class="SearchComplete-completions wrap">
                         ${this.completions
-                    .filter(id => id.toLowerCase().includes(this.value.toLowerCase()))
-                    .slice(0, this.MAX_SUGGESTIONS)
-                    .map(Suggestion.bind(this))}
+                            .filter(id => id.toLowerCase().includes(this.value.toLowerCase()))
+                            .slice(0, this.MAX_SUGGESTIONS)
+                            .map(Suggestion.bind(this))}
                     </div>
                 ` : null}
             </div>
@@ -353,49 +375,49 @@ class GeoFilter extends Component {
                         <p>District</p>
                         <select class="padded outlined"
                             onchange=${evt => {
-                this.selections = [this.findMatchingGeo(GEOS, evt.target.value)].filter(g => !!g);
-                this.updateFilterFromSelections();
-            }}>
+                                this.selections = [this.findMatchingGeo(GEOS, evt.target.value)].filter(g => !!g);
+                                this.updateFilterFromSelections();
+                            }}>
                             <option value="">--Select --</option>
-                            ${GEOS.sort(lexicographically).map(({ name }) => {
-                return html`<option value=${name}
+                            ${GEOS.sort(lexicographically).map(({name}) => {
+                                return html`<option value=${name}
                                     selected=${this.selections[0] && this.selections[0].name == name}>${name}</option>`;
-            })}
+                            })}
                         </select>
                     </label>
                     ${this.selections[0] && this.selections[0].contains.length ? html`<label>
                         <p>Mandal/City/Municipality</p>
                         <select class="padded outlined"
                             onchange=${evt => {
-                    this.selections = [
-                        this.selections[0],
-                        this.findMatchingGeo(this.selections[0].contains, evt.target.value),
-                    ].filter(g => !!g);
-                    this.updateFilterFromSelections();
-                }}>
+                                this.selections = [
+                                    this.selections[0],
+                                    this.findMatchingGeo(this.selections[0].contains, evt.target.value),
+                                ].filter(g => !!g);
+                                this.updateFilterFromSelections();
+                            }}>
                             <option value="">--Select --</option>
-                            ${this.selections[0].contains.sort(lexicographically).map(({ name }) => {
-                    return html`<option value=${name}
+                            ${this.selections[0].contains.sort(lexicographically).map(({name}) => {
+                                return html`<option value=${name}
                                     selected=${this.selections[1] && this.selections[1].name == name}>${name}</option>`;
-                })}
+                            })}
                         </select>
                     </label>` : null}
                     ${this.selections[1] && this.selections[1].contains.length ? html`<label>
                         <p>Village/Zone</p>
                         <select class="padded outlined"
                             onchange=${evt => {
-                    this.selections = [
-                        this.selections[0],
-                        this.selections[1],
-                        this.findMatchingGeo(this.selections[1].contains, evt.target.value),
-                    ].filter(g => !!g);
-                    this.updateFilterFromSelections();
-                }}>
+                                this.selections = [
+                                    this.selections[0],
+                                    this.selections[1],
+                                    this.findMatchingGeo(this.selections[1].contains, evt.target.value),
+                                ].filter(g => !!g);
+                                this.updateFilterFromSelections();
+                            }}>
                             <option value="">--Select --</option>
-                            ${this.selections[1].contains.sort(lexicographically).map(({ name }) => {
-                    return html`<option value=${name}
+                            ${this.selections[1].contains.sort(lexicographically).map(({name}) => {
+                                return html`<option value=${name}
                                     selected=${this.selections[2] && this.selections[2].name == name}>${name}</option>`;
-                })}
+                            })}
                         </select>
                     </label>` : null}
                 </div>
@@ -403,9 +425,9 @@ class GeoFilter extends Component {
             <div class="buttonGroup">
                 <button class="filterPopupButton outlined padded"
                     onclick=${() => {
-                this.selections = [];
-                this.updateFilterFromSelections();
-            }}>Reset</button>
+                        this.selections = [];
+                        this.updateFilterFromSelections();
+                    }}>Reset</button>
             </div>
         </div>`
     }
@@ -421,44 +443,44 @@ class PropertyTypeFilter extends Component {
     }
     displayText() {
         const propType = this.getFilters().propertyType;
-        return propType ? propType[0].toUpperCase() + propType.substr(1) : 'Type';
+        return propType ? propType[0].toUpperCase() + propType.substr(1) :'Type';
     }
     compose() {
-        const { propertyTypes } = this.getFilters();
+        const {propertyTypes} = this.getFilters();
         return html`<div class="PropertyTypeFilter FilterPopup">
             <div class="FilterPopup-body">
                 <p><b>Property type</b></p>
                 ${PROPERTY_TYPES.map(propType => {
-            const { name, color, textColor } = propType;
-            return html`<label class="PropertyTypeFilter-label">
+                    const {name, color, textColor} = propType;
+                    return html`<label class="PropertyTypeFilter-label">
                         <input type="checkbox" name="PropertyTypeFilter" value=${name}
                             checked=${propertyTypes.includes(propType)}
                             onchange=${() => {
-                    if (propertyTypes.includes(propType)) {
-                        this.updateFilters({
-                            propertyTypes: removeFromArray(propertyTypes, propType),
-                        });
-                    } else {
-                        this.updateFilters({
-                            propertyTypes: propertyTypes.concat(propType),
-                        });
-                    }
-                }} />
+                                if (propertyTypes.includes(propType)) {
+                                    this.updateFilters({
+                                        propertyTypes: removeFromArray(propertyTypes, propType),
+                                    });
+                                } else {
+                                    this.updateFilters({
+                                        propertyTypes: propertyTypes.concat(propType),
+                                    });
+                                }
+                            }} />
 
                         <div class="propertyTypeLabel"
-                            style="background:${color}; color:white">
+                            style="background:${color}; color:${textColor}">
                             ${name}
                         </div>
                     </label>`
-        })}
+                })}
             </div>
             <div class="buttonGroup">
                 <button class="filterPopupButton outlined padded"
                     disabled=${propertyTypes.length == PROPERTY_TYPES.length}
-                    onclick=${() => this.updateFilters({ propertyTypes: PROPERTY_TYPES.slice() })}>Check all</button>
+                    onclick=${() => this.updateFilters({propertyTypes: PROPERTY_TYPES.slice()})}>Check all</button>
                 <button class="filterPopupButton outlined padded"
                     disabled=${propertyTypes.length == 0}
-                    onclick=${() => this.updateFilters({ propertyTypes: [] })}>Uncheck all</button>
+                    onclick=${() => this.updateFilters({propertyTypes: []})}>Uncheck all</button>
             </div>
         </div>`;
     }
@@ -470,42 +492,42 @@ class PlotAreaFilter extends Component {
         this.updateFilters = updateFilters;
     }
     displayText() {
-        const { areaMin, areaMax } = this.getFilters();
+        const {areaMin, areaMax} = this.getFilters();
         if (areaMin && areaMax) {
-            return `${areaMin}Acres-${areaMax}Acres`;
+            return `${areaMin}m²-${areaMax}m²`;
         }
         if (areaMin) {
-            return `> ${areaMin} Acres`;
+            return `> ${areaMin}m²`;
         }
         if (areaMax) {
-            return `< ${areaMax} Acres`;
+            return `< ${areaMax}m²`;
         }
         return 'Area';
     }
     compose() {
-        const { areaMin, areaMax } = this.getFilters();
+        const {areaMin, areaMax} = this.getFilters();
         return html`<div class="PlotAreaFilter FilterPopup FilterPopup-body">
-            <p class="PlotAreaFilter-label">Area range  (Acres)</p>
+            <p class="PlotAreaFilter-label">Area range (m<sup>2</sup>)</p>
             <div class="inputWrapper">
                 <input type="number" value=${areaMin}
                     class="outlined padded"
                     placeholder="min"
-                    oninput=${evt => this.updateFilters({ areaMin: +evt.target.value || null })}/>
+                    oninput=${evt => this.updateFilters({areaMin: +evt.target.value || null})}/>
                 -
                 <input type="number" value=${areaMax}
                     class="outlined padded"
                     placeholder="max"
-                    oninput=${evt => this.updateFilters({ areaMax: +evt.target.value || null })}/>
+                    oninput=${evt => this.updateFilters({areaMax: +evt.target.value || null})}/>
             </div>
         </div>`;
     }
 }
 
 class FilterBar extends Component {
-    init(places, { getFilters, updateFilters }) {
+    init(places, {getFilters, updateFilters}) {
         this.search = new SearchComplete({
             updateInput: (term) => {
-                updateFilters({ search: term });
+                updateFilters({search: term});
 
                 // If the search term is a geographic region, select the geo region.
                 if (!term) {
@@ -555,13 +577,15 @@ class FilterBar extends Component {
         });
     }
     updateAutocompleteList() {
-        const currentGeo = this.getFilters().geo || { contains: GEOS };
+        const currentGeo = this.getFilters().geo || {contains: GEOS};
         const childGeos = getChildGeoNames(currentGeo);
         const places = this.places.summarize()
             .map(p => p.summarize())
             .filter(props => !props['_hidden']);
-        const suggestions = places.map(p => p['MINE_ID'])
-            .concat(places.map(p => p['LESSEE_NAME']))
+        const suggestions = places.map(p => p['BHOOMI_ID'])
+            .concat(places.map(p => p['MAKAAN_ID']))
+            .concat(places.map(p => p['SURVEY_NO']))
+            .concat(places.map(p => p['CURRENT_PROPERTY_OWNER']))
             .concat(childGeos)
             .filter(s => !!s);
         this.search.updateAutocompleteList([...new Set(suggestions)]);
@@ -586,28 +610,28 @@ class FilterBar extends Component {
 
             <div class="FilterBar-proptype FilterBar-slot">
                 <div class="FilterBar-slot-opener ${geo ? 'filled' : 'outlined'} padded" onclick=${evt => {
-                this.closeAllFilters();
-                this.showGeo = this.showGeo ? null : true;
-                this.render();
-            }}>${this.geoFilter.displayText()}</div>
+                    this.closeAllFilters();
+                    this.showGeo = this.showGeo ? null : true;
+                    this.render();
+                }}>${this.geoFilter.displayText()}</div>
                 ${this.showGeo && this.geoFilter.node}
             </div>
 
             <div class="FilterBar-proptype FilterBar-slot">
                 <div class="FilterBar-slot-opener ${propertyTypes.length === PROPERTY_TYPES.length ? 'filled' : 'outlined'} padded" onclick=${evt => {
-                this.closeAllFilters();
-                this.showPropertyType = this.showPropertyType ? null : true;
-                this.render();
-            }}>${this.propertyTypeFilter.displayText()}</div>
+                    this.closeAllFilters();
+                    this.showPropertyType = this.showPropertyType ? null : true;
+                    this.render();
+                }}>${this.propertyTypeFilter.displayText()}</div>
                 ${this.showPropertyType && this.propertyTypeFilter.node}
             </div>
 
             <div class="FilterBar-proptype FilterBar-slot">
                 <div class="FilterBar-slot-opener ${(areaMin || areaMax) ? 'filled' : 'outlined'} padded" onclick=${evt => {
-                this.closeAllFilters();
-                this.showPlotArea = this.showPlotArea ? null : true;
-                this.render();
-            }}>${this.plotAreaFilter.displayText()}</div>
+                    this.closeAllFilters();
+                    this.showPlotArea = this.showPlotArea ? null : true;
+                    this.render();
+                }}>${this.plotAreaFilter.displayText()}</div>
                 ${this.showPlotArea && this.plotAreaFilter.node}
             </div>
 
@@ -616,15 +640,15 @@ class FilterBar extends Component {
             <div class="FilterBar-proptype FilterBar-slot">
                 <label class="FilterBar-resetButton outlined padded"
                     onclick=${() => {
-                this.updateFilters({
-                    search: '',
-                    geo: null,
-                    propertyTypes: PROPERTY_TYPES.slice(),
-                    areaMin: null,
-                    areaMax: null,
-                });
-                this.render();
-            }}>
+                        this.updateFilters({
+                            search: '',
+                            geo: null,
+                            propertyTypes: PROPERTY_TYPES.slice(),
+                            areaMin: null,
+                            areaMax: null,
+                        });
+                        this.render();
+                    }}>
                     Reset
                 </label>
             </div>
@@ -653,10 +677,10 @@ class PropertyOverlayPopup extends Component {
                 <img src="${this.place.imageURL()}"
                     onerror=${evt => evt.target.src = '/img/fallback.png'} />
             </div>
-            <div class="right" >
-                <b>${props['LESSEE_NAME'] || 'N/A'}</b>
-                <p><b>Mine Area</b>: ${this.place.formattedPlotArea()}</p>
-                <p><b>Mineral Type</b>: ${props['PROPERTY_TYPE']}</p>
+            <div class="right">
+                <b>${props['CURRENT_PROPERTY_OWNER'] || 'N/A'}</b>
+                <p><b>Plot Area</b>: ${this.place.formattedPlotArea()}</p>
+                <p><b>Built-Up Area</b>: ${this.place.formattedBuiltUpArea()}</p>
             </div>
         </div>`;
     }
@@ -672,25 +696,24 @@ class PropertyOverlayView extends google.maps.OverlayView {
 
         this._popup = new PropertyOverlayPopup(this.place);
     }
-
     onAdd() {
         this.node = Torus.render(null, null, html`<div class="PropertyOverlayView"
             onclick=${() => this.updateFilters({
-            search: this.place.id,
-        })}
+                search: this.place.id,
+            })}
             onmouseenter=${this.showPopup.bind(this)}
-            onmouseleave=${this.hidePopup.bind(this)}  >
+            onmouseleave=${this.hidePopup.bind(this)}>
             <div class="PropertyOverlayView-inspection"
                 style="background:${getIndicatorColor(this.place)}" />
         </div>`);
         const panes = this.getPanes();
         panes.overlayMouseTarget.appendChild(this.node);
     }
-
     showPopup() {
         if (this.node) {
-            // must be above other overlay markers 
+            // must be above other overlay markers
             this.getPanes().overlayMouseTarget.appendChild(this.node);
+
             this.node.appendChild(this._popup.node);
             this.node.classList.add('show-popup');
         }
@@ -812,7 +835,7 @@ class PropertyLayer extends Component {
         this._plotlineVisible = false;
         // if the property has no geometry, doesn't make sense to show marker
         // on the map
-        if (this.place.get('GEOJSON_Shape')) {
+        if (this.place.get('GEOJSON')) {
             this.label = new PropertyOverlayView(this.place, { updateFilters });
         }
 
@@ -839,12 +862,13 @@ class PropertyLayer extends Component {
 
         this.map.fitBounds(bounds);
     }
-    toggleExcavatedPlotlines(visible) {
+    togglePlotlines(visible) {
         this._plotlineVisible = visible;
         this.render();
     }
     render() {
         const props = this.record.summarize();
+
         if (!props.GEOJSON) return [];
 
         const isVisible = !props._hidden && this._plotlineVisible;
@@ -886,17 +910,14 @@ class PropertyLayer extends Component {
         } else {
             this.label.hidePopup();
         }
+
         return null;
     }
-
-
 }
 
 class LayerGroup extends ListOf(PropertyLayer) {
-
-    toggleExcavatedPlotlines(visible) {
-        this.components.forEach(c => c.toggleExcavatedPlotlines(visible));
-
+    togglePlotlines(visible) {
+        this.components.forEach(c => c.togglePlotlines(visible));
     }
     render() {
         this.components.forEach(c => c.record.emitEvent());
@@ -905,9 +926,9 @@ class LayerGroup extends ListOf(PropertyLayer) {
 }
 
 class GoogleMap extends Component {
-    init(places, { getFilters, updateFilters }) {
+    init(places, {getFilters, updateFilters}) {
         this.places = places;
-        this.showExcavatedPlotlines = false;
+        this.showPlotlines = false;
 
         this.showBoundaries = true;
         this._geos = [];
@@ -926,7 +947,6 @@ class GoogleMap extends Component {
                 lng: 78.582,
             },
             zoom: 11,
-
         });
         this.map.setMapTypeId(google.maps.MapTypeId.HYBRID);
         this.map.addListener('zoom_changed', this.render.bind(this));
@@ -959,13 +979,13 @@ class GoogleMap extends Component {
             this.map.data.setStyle(setStyle);
             this.render();
         });
-        this.map.data.addListener('mouseover', ({ feature }) => {
+        this.map.data.addListener('mouseover', ({feature}) => {
             feature.setProperty('highlighted', true);
         });
-        this.map.data.addListener('mouseout', ({ feature }) => {
+        this.map.data.addListener('mouseout', ({feature}) => {
             feature.setProperty('highlighted', false);
         });
-        this.map.data.addListener('click', ({ feature }) => {
+        this.map.data.addListener('click', ({feature}) => {
             if (feature.getProperty('isBoundary')) {
                 this.setGeoFilterFromFeature(feature);
             }
@@ -976,47 +996,10 @@ class GoogleMap extends Component {
             this.renderBoundaries();
             this.render();
         }
-        this.toggleExcavatedPlotlines = () => {
-            this.showExcavatedPlotlines = !this.showExcavatedPlotlines;
-            this.layers.toggleExcavatedPlotlines(this.showExcavatedPlotlines);
-            this.render();
-        }
-        this.showPlotlines = false;
-        this.plotlayer = [];
         this.togglePlotlines = () => {
             this.showPlotlines = !this.showPlotlines;
+            this.layers.togglePlotlines(this.showPlotlines);
             this.render();
-            let property = this.places.summarize()
-            property.forEach(place => {
-
-                const props = place.summarize();
-                if (!props.GEOJSON) return [];
-
-                const isVisible = !props._hidden && this.showPlotlines;
-
-                if (isVisible) {
-                    if (props.GEOJSON) {
-                        this.plotlayer = this.map.data.addGeoJson(props['GEOJSON_Shape']);
-
-                    }
-                    this.plotlayer.forEach(fea => {
-                        fea.setProperty('color', "rgb(255,235,175)")
-                    })
-
-                }
-                else {
-                    if (this.showPlotlines == false) {
-                        this.map.data.forEach(feature => {
-                            if (feature['j']['BHOOMI_ID']) {
-                                this.map.data.remove(feature);
-                            }
-
-                        })
-                    }
-
-                }
-            })
-
         }
     }
 
@@ -1069,7 +1052,7 @@ class GoogleMap extends Component {
 
         if (this.showBoundaries) {
             this._geoFeatures = [];
-            for (const { id, geojson } of this._geos) {
+            for (const {id, geojson} of this._geos) {
                 this._geoFeatures = this._geoFeatures.concat(this.map.data.addGeoJson(geojson));
                 const features = this.map.data.addGeoJson(geojson);
                 for (const feature of features) {
@@ -1139,15 +1122,16 @@ class GoogleMap extends Component {
                     ${this.showBoundaries ? 'Hide' : 'Show'} Boundaries
                 </button>
                 <button class="outlined padded"
-                onclick=${this.togglePlotlines}>
-                ${this.showPlotlines ? 'Hide' : 'Show'} Plot Lines
-            </button>
-                <button class="outlined padded"
-                    onclick=${this.toggleExcavatedPlotlines}>
-                    ${this.showExcavatedPlotlines ? 'Hide' : 'Show'} Excavated Area
+                    onclick=${this.togglePlotlines}>
+                    ${this.showPlotlines ? 'Hide' : 'Show'} Plot Lines
                 </button>
-              
-               
+                <button class="outlined padded"
+                    onclick=${evt => {
+                        this.updateFilters({violations: violations == 'V' ? '' : 'V'});
+                        this.render();
+                    }}>
+                    ${violations == 'V' ? 'Show All' : 'Violations'}
+                </button>
             </div>
             ${this.mapContainer}
         </div>`;
@@ -1175,9 +1159,9 @@ class ReportLightbox extends Component {
                 </div>
                 <section class="ReportLightbox-propertyDetails">
                     ${!this._errored ? html`<img class="ReportLightbox-image" src="${this.url}" onerror=${() => {
-                this._errored = true;
-                this.render();
-            }}/>` : html`<p class="noReportAvailable">No report available</p>`}
+                        this._errored = true;
+                        this.render();
+                    }}/>` : html`<p class="noReportAvailable">No report available</p>`}
                 </section>
             </div>
         </div>`
@@ -1188,28 +1172,27 @@ class PlaceListingCard extends Component {
     init(place, _remover) {
         this.hovering = false;
         this.popup = null;
+
         this.hidePopup = this.hidePopup.bind(this);
         this.showInspectionReport = () => this.showPopup(
             'Inspection Report',
-            'https://airserve-m-360.web.app/images/reports/TMINR.jpg'
-            // `https://tbirdsalpha.web.app/images/inspectionreports/${place.get('MAKAAN_ID')}.jpg`
+            `https://tbirdsalpha.web.app/images/inspectionreports/${place.get('MAKAAN_ID')}.jpg`
         );
         this.showRegistrationReport = () => this.showPopup(
             'Registration Report',
-            'https://airserve-m-360.web.app/images/reports/TMINR.jpg'
-            // `https://tbirdsalpha.web.app/images/registrationreports/${place.get('MAKAAN_ID')}.jpg`
+            `https://tbirdsalpha.web.app/images/registrationreports/${place.get('MAKAAN_ID')}.jpg`
         );
         this.showTaxReport = () => this.showPopup(
             'Tax Report',
-            'https://airserve-m-360.web.app/images/reports/TMINR.jpg'
-            // `https://tbirdsalpha.web.app/images/taxreports/${place.get('MAKAAN_ID')}.jpg`
+            `https://tbirdsalpha.web.app/images/taxreports/${place.get('MAKAAN_ID')}.jpg`
         );
-        this.showCesium = () => {
-            this.showCesiumPopup(place)
-        }
+        this.showUtilityReport = () => this.showPopup(
+            'Utility Report',
+            `https://tbirdsalpha.web.app/images/utilityreports/${place.get('MAKAAN_ID')}.jpg`
+        );
         this.centerOnMap = () => {
-            this.record.update({ _center: true });
-            setTimeout(() => this.record.update({ _center: false }), 100);
+            this.record.update({_center: true});
+            setTimeout(() => this.record.update({_center: false}), 100);
         }
         this.handleMouseenter = () => this.record.update({
             _popup: true,
@@ -1221,33 +1204,7 @@ class PlaceListingCard extends Component {
         this.place = place;
         this.cachedCardContents = this.cardContents(place.summarize()).children;
         this.bind(place, this.render.bind(this));
-
     }
-
-    // 3D view  window with masking the left side using Detail(div)
-    showCesiumPopup(place) {
-        let property = place.data;
-        let cesium = document.createElement('div')
-        let cesiumurl = property['Cesium_Id'] 
-        let content =
-            `<div class="CesiumLightbox-wrapper">
-                        <div class="CesiumLightbox-header ReportLightbox-header">
-                            <span class="Cesium-tile reportTitle">3D-View</span>
-                            <button class="Cesiumcloser reportCloser" id="close">Close</button>
-                       </div> 
-                        <div class="CesiumPersonnel-3d">
-                        <iframe id="Cesium-website" title="Untitled"  src=${cesiumurl} frameborder="0" allow="fullscreen" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
-                            </div> 
-                        </div>`
-
-
-        cesium.innerHTML = content;
-        document.body.appendChild(cesium)
-        document.getElementById("close").addEventListener('click', () => {
-            document.body.removeChild(cesium)
-        })
-    }
-
     showPopup(reportName, reportURL) {
         if (this.popup) return;
         this.popup = new ReportLightbox(this.record, this.hidePopup, reportName, reportURL);
@@ -1258,54 +1215,48 @@ class PlaceListingCard extends Component {
         document.body.removeChild(this.popup.node);
         this.popup = null;
     }
-
     cardContents(props) {
-        const inspectionDetail = props['INSPECTION_INDICATOR'] ? html`<div class="PLC-detail" >
-            <p >
-                <b>${COMPLIANCE[props['INSPECTION_INDICATOR']]}:  </b>
+        const inspectionDetail = props['Inspection Indicator'] ? html`<div class="PLC-detail">
+            <p>
+                <b>${COMPLIANCE[props['Inspection Indicator']]}</b>:
                 <span class="PLC-inspection"
-                    style="background:${props['INSPECTION_INDICATOR'] == 'C' ? '#6cc648' : '#eb5065'}" />
+                    style="background:${props['Inspection Indicator'] == 'C' ? '#6cc648' : '#eb5065'}" />
             </p>
         </div>` : null;
 
         return html`<div>
             <div class="PLC-image" onclick=${this.centerOnMap}>
                 <div class="PLC-top-left PLC-prop-id">
-                    <strong>ID</strong>: ${props['MINE_ID']}
+                    <strong>ID</strong>: ${props.id}
                 </div>
-                
+                <div class="PLC-prop-summary">
+                    <p>${props['PROPERTY_TYPE']}</p>
+                </div>
                 <img src="${this.place.imageURL()}"
                     onerror=${evt => {
-                evt.target.src = '/img/fallback.png';
-                evt.target.closest('.PLC-image').classList.add('broken');
-            }}
+                        evt.target.src = '/img/fallback.png';
+                        evt.target.closest('.PLC-image').classList.add('broken');
+                    }}
                     loading="lazy" />
             </div>
             <div class="PLC-detail split">
-            <p><b>Area:</b> ${this.place.formattedPlotArea()}</p>
-            <p><b>Mineral: </b>  ${props['PROPERTY_TYPE']}</p>
+                <p><b>Plot Area:</b> ${this.place.formattedPlotArea()}</p>
+                <p><b>Built-Up Area:</b> ${this.place.formattedBuiltUpArea()}</p>
             </div>
             <div class="PLC-detail">
-                ${props['ESTIMATED_TOTAL_ROYALITY_PAID'] ? html`<p><b>Estimated Total Royality:  ₹</b>${props['ESTIMATED_TOTAL_ROYALITY_PAID']}</p>` : null}
+                ${props['T-ESTIMATE'] ? html`<p><b>T-Estimate</b>: ${props['T-ESTIMATE']}</p>` : null}
             </div>
             <div class="PLC-detail">
                 <p><b>Owned by</b></p>
-                <p class="PLC-owner">${titleCase(props['LESSEE_NAME'] || 'N/A')}</p>
+                <p class="PLC-owner">${titleCase(props['CURRENT_PROPERTY_OWNER'] || 'N/A')}</p>
             </div>
             <div class="PLC-detail">
                 <p><b>Located at</b></p>
                 <p>${titleCase(props['ADDRESS'])}</p>
             </div>
-            <div class="PLC-detail"> 
-           
-            ${inspectionDetail}   
-            </div>
-           
+            ${inspectionDetail}
             <div class="PLC-detail PLC-report-detail">
-            <p><b>Reports</b></p>
-               <button class="PLC-button filled" onclick=${this.showCesium} style="height:50px;float:right;">3D View</button>
-             
-               
+                <p><b>Reports</b></p>
                 <div class="PLC-reports">
                     <button class="PLC-button filled" onclick=${this.showInspectionReport}>
                         <img src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjZmZmZmZmIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTAwIDEwMCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGc+PHBhdGggZD0iTTY5LjA1NCw1OS4wNThsMjcuNDcxLDIzLjgxMWMyLjQ5NCwyLjE2MiwyLjc2Niw1Ljk3MSwwLjYwNCw4LjQ2NWwtMC45ODEsMS4xMzJjLTIuMTYyLDIuNDk0LTUuOTcxLDIuNzY2LTguNDY1LDAuNjA0ICAgTDYwLjQxOCw2OS40MzgiPjwvcGF0aD48L2c+PHBhdGggZD0iTTIuMzU4LDQxLjQ1OGMwLTE5Ljc0NCwxNi4wMDUtMzUuNzQ5LDM1Ljc1MS0zNS43NDljMTkuNzQ0LDAsMzUuNzQ5LDE2LjAwNSwzNS43NDksMzUuNzQ5ICBjMCwxOS43NDYtMTYuMDA1LDM1Ljc1MS0zNS43NDksMzUuNzUxQzE4LjM2Myw3Ny4yMDgsMi4zNTgsNjEuMjAzLDIuMzU4LDQxLjQ1OHogTTM4LjU2Myw2Ny41ODMgIGMxNC40MjgsMCwyNi4xMjQtMTEuNjk2LDI2LjEyNC0yNi4xMjZjMC0xNC40MjgtMTEuNjk2LTI2LjEyNC0yNi4xMjQtMjYuMTI0Yy0xNC40MywwLTI2LjEyNiwxMS42OTYtMjYuMTI2LDI2LjEyNCAgQzEyLjQzOCw1NS44ODcsMjQuMTM0LDY3LjU4MywzOC41NjMsNjcuNTgzeiI+PC9wYXRoPjwvc3ZnPg==" alt="Inspection" />
@@ -1317,11 +1268,15 @@ class PlaceListingCard extends Component {
                     </button>
                 </div>
                 <div class="PLC-reports">
-                      <button class="PLC-button filled" onclick=${this.showRegistrationReport}>
-                        <img src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjZmZmZmZmIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwtOTUyLjM2MjE4KSI+PHBhdGggc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7YmFzZWxpbmUtc2hpZnQ6YmFzZWxpbmU7b3BhY2l0eToxO2NvbG9yOiMwMDAwMDA7ZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDo2O21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6U2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOlNhbnMiIGQ9Ik0gMTguNjg3NSA1IEEgMy4wMDAzIDMuMDAwMyAwIDAgMCAxNiA4IEwgMTYgOTIgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDE5IDk1IEwgODEgOTUgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDg0IDkyIEwgODQgMzQgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDc4IDM0IEwgNzggODkgTCAyMiA4OSBMIDIyIDExIEwgNjIgMTEgTCA2MiAyNCBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgNjUgMjcgTCA4MSAyNyBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgODMuMTI1IDIxLjg3NSBMIDY3LjEyNSA1Ljg3NSBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgNjUgNSBMIDE5IDUgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDE4LjY4NzUgNSB6IE0gNjggMTUuMjE4NzUgTCA3My43ODEyNSAyMSBMIDY4IDIxIEwgNjggMTUuMjE4NzUgeiBNIDI3LjY4NzUgMjggQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDM0IEwgNTAgMzQgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDUwIDI4IEwgMjggMjggQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgMjggeiBNIDI3LjY4NzUgMzkgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDQ1IEwgNzIgNDUgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDM5IEwgMjggMzkgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgMzkgeiBNIDI3LjY4NzUgNTAgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDU2IEwgNzIgNTYgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDUwIEwgMjggNTAgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNTAgeiBNIDI3LjY4NzUgNjEgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDY3IEwgNzIgNjcgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDYxIEwgMjggNjEgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNjEgeiBNIDI3LjY4NzUgNzIgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDc4IEwgNzIgNzggQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDcyIEwgMjggNzIgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNzIgeiAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOTUyLjM2MjE4KSI+PC9wYXRoPjwvZz48L3N2Zz4=" alt="Registration" />
-                        <div>Agreement</div>
+                    <button class="PLC-button filled" onclick=${this.showUtilityReport}>
+                        <img src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjZmZmZmZmIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTE5Mi4zNTc4IDExMjAuODk2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyMDAwIDIwMDAiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIHN0eWxlPSIiIGQ9Im0gMzEwLjUzMjg3LDAgYyAtMzcuNDQ2OCwwIC03NC4xMzc4LDYuNjQ4IC0xMDkuMTM0OCwxOS43MTQgLTE0Ljk5Nyw1LjYxMyAtMjYuMTc2LDE4LjQ4NiAtMjkuNTcxLDM0LjE0NiAtMy4zOTcsMTUuNjU3IDEuNDEyLDMxLjk3NiAxMi43MzIsNDMuMzQzIGwgMTI3LjAxMjgsMTI3LjA1OSAtMTguNDQxLDY4LjkwOSAtNjguOTk4OCwxOC40ODYgTCA5Ny4xMTgwNjUsMTg0LjU5OSBjIC0xMS4zMTksLTExLjMyIC0yNy41NCwtMTYuMjc0IC00My4yOTQsLTEyLjczOCAtMTUuNzUyLDMuMzk3IC0yOC41ODIsMTQuNTMgLTM0LjE5NSwyOS41NzYgLTQyLjU0MiwxMTMuNzYgLTE0LjYyMDk5OTYsMjQyLjY1OCA3MS4wMjcsMzI4LjM1MyA3MC4xODEwMDUsNzAuMjI3IDE3MC43ODMwMDUsMTAyLjUzNCAyNjguODgzODA1LDg2LjY4NSBsIDEzLjYwMSwxMy42MDMgLTIwMC4wODc4LDIwMC4wMDQwMiBjIC03MS45MjYsNzIuMDE4IC04Mi4yNTUwMDUsMTc0LjQ2MDk4IC0yMy40ODksMjMzLjIyNTk4IDI0LjMzNiwyNC4zMzggNTguMTUzLDM3LjczMyA5NS4yNywzNy43MzMgNDguNzIwOCwwIDk5LjA0MzgsLTIyLjM1OCAxMzcuODU5OCwtNjEuMjY3IGwgMjAwLjA3Nzk1LC0yMDAuMDM4OTggMjI4LjAzMSwyMjguMDUzOTggYyAzNC4zODMsMzQuMjQyIDc5Ljk5LDUzLjEwNyAxMjguNDI3LDUzLjEwNyA0OC41MzEsMCA5NC4xMzk5OCwtMTguOTEyIDEyOC4zNzk5OCwtNTMuMTA3IDM0LjM4MywtMzQuMjg5IDUzLjI0NiwtNzkuODQ4OTggNTMuMjQ2LC0xMjguMzc5OTggMCwtNDguNTMxIC0xOC45NTcsLTk0LjA5MSAtNTMuMjQ2LC0xMjguMzc4IEwgNzY4LjAyOTgyLDUxMS40NTEgOTc4Ljc1NDgyLDMwMC44MzkgYyAxMi43MjQsNC43OTMgMjYuMzE2OTgsNy4zMjMgNDAuMjc2OTgsNy4zMjcgMzAuNTQzLC0wLjAyIDU5LjIwMiwtMTEuODk2IDgwLjg0MSwtMzMuNDM4IGwgNzguNjY1LC03OC43MTUgYyA4Ljg2NiwtOC44MTkgMTMuODIsLTIwLjg0NSAxMy44MiwtMzMuMzQ0IDAsLTEyLjQ5OCAtNC45NTQsLTI0LjQ3OSAtMTMuODIsLTMzLjM0OCBsIC05NS4wNzgsLTk1LjA4MSBjIC0xNy42ODgsLTE3LjY4OCAtNDkuMDA0LC0xNy42ODggLTY2LjY5MSwwIGwgLTc4LjU3Nzk4LDc4LjY2OCBjIC0zMi42MzQsMzIuNjM2IC00MS4zMzgsODAuMzcxIC0yNi4wNywxMjEuMTQ0IGwgLTIxMC44MDIsMjEwLjY4OCAtODQuOTc0LC04NC45NzQgYyAxNS42NiwtOTcuNzIzIC0xNi4zMTksLTE5OC43MDMgLTg2LjY4NSwtMjY4Ljk3OCBDIDQ3MS4xNzU4MiwzMi4yNTkgMzkzLjM1Mjg3LDAgMzEwLjUzMjg3LDAgWiBtIDQuNDgzLDk0LjM4MSBjIDU1LjkzNiwxLjEzMiAxMDguMzM1LDIzLjQ0IDE0Ny45NTE5NSw2My4xMDUgNTQuMjQsNTQuMjQgNzUuMzE5LDEzMS4yNTkgNTYuMzYsMjA2LjA2MiAtNC4wNTUsMTYuMTMgMC42NjEsMzMuMiAxMi4zNTgsNDQuOTQ2IGwgNDY5LjIzNjk4LDQ2OS4yMzEwMiBjIDE2LjUwNywxNi41MDcgMjUuNjA5LDM4LjM5MyAyNS42MDksNjEuNjkyIDAsMjMuMjk5IC05LjEwMiw0NS4xMzYgLTI1LjYwOSw2MS42NDI5OCAtMzIuOTY3OTgsMzIuOTYgLTkwLjQ2NDk4LDMyLjkxMyAtMTIzLjQzMTk4LDAuMDQgTCA0MDguMzUzODcsNTMxLjg2NyBjIC04LjkxNCwtOC45NiAtMjAuOTkxLC0xMy44MiAtMzMuMzQ4LC0xMy44MiBsIDAsMCBjIC0zLjg2NywwIC03LjczNSwwLjQyNiAtMTEuNjAyLDEuNDYzIC03My40ODEsMTguNjI5IC0xNTIuNzEzOCwtMy4wMTYgLTIwNi4wNTU4LC01Ni4zNiAtMzkuOTAyLC0zOS45IC02MS43NDAwMDUsLTkzLjI0NCAtNjMuMDE0MDA1LC0xNDcuOTA3IGwgODIuMzQ5MDA1LDgyLjM5NCBjIDExLjg4NSwxMS45MzQgMjkuMjksMTYuNjUxIDQ1LjYwOSwxMi4yMTYgbCAxMjEuNDkzOCwtMzIuNTQzIGMgMTYuMzE5LC00LjMzOCAyOS4wMDQsLTE3LjA3MiAzMy4zNDIsLTMzLjM0NCBsIDMyLjU5NSwtMTIxLjU0MSBjIDQuMzQsLTE2LjI3MiAtMC4yODUsLTMzLjY3OCAtMTIuMjY1LC00NS41NjQgbCAtODIuNDQyLC04Mi40ODcgeiBtIDczNS4xNDU5MywzOS45MzkgMjguMzQxLDI4LjMgLTQ1LjMyMSw0NS4zNyBjIC05LjYxOCw5LjU3NCAtMTcuMTE1LDEwLjE0NyAtMjYuNDgsMS43MjQgLTAuNTU3LC0wLjYxNiAtMS4xMzQsLTEuMjIyIC0xLjcyOCwtMS44MTYgLTAuMzY2LC0wLjM2NyAtMC43NDUsLTAuNzEyIC0xLjEyMiwtMS4wNjUgLTYuNjc4OTgsLTcuOTE2IC02LjQyNzk4LC0xOS43NzMgMS4wMywtMjcuMjMzIGwgNDUuMjgsLTQ1LjI4IHogbSAtNjExLjk1MjkzLDU2NC4xMjYwMiA3Ni4yNjM5NSw3Ni4yNjggLTE5OC40MTk5NSwxOTguMzY4IGMgLTIxLjAzNSwyMS4wMzYgLTQ3LjYzNTgsMzMuNjMxOTggLTcxLjIxODgsMzMuNjMxOTggLTguMzQ3LDAgLTIwLjEzOCwtMS43NDUgLTI4LjUzMSwtMTAuMDQ2OTggLTE4LjA2NSwtMTguMDYyIC0xMi44MywtNjMuNTMyIDIzLjQ4NywtOTkuODk0IGwgMTk4LjQxODgsLTE5OC4zMjcgeiBtIDQ5NC4wODc5NSwxOTEuMjk4IGMgLTIxLjc0MywwIC0zOS4zMzUsMTcuNTk0IC0zOS4zMzUsMzkuMjg5IDAsMjEuNjk2IDE3LjU5MiwzOS4yOSAzOS4zMzUsMzkuMjkgMjEuNzQyLDAgMzkuMzM0LC0xNy41OTQgMzkuMzM0LC0zOS4yOSAwLC0yMS42OTUgLTE3LjU5MiwtMzkuMjg5IC0zOS4zMzQsLTM5LjI4OSB6IiBmaWxsPSIjZmZmZmZmIj48L3BhdGg+PC9zdmc+" alt="Utility" />
+                        <div>Utility</div>
                     </button>
-                     </div>
+                    <button class="PLC-button filled" onclick=${this.showRegistrationReport}>
+                        <img src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjZmZmZmZmIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwtOTUyLjM2MjE4KSI+PHBhdGggc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7YmFzZWxpbmUtc2hpZnQ6YmFzZWxpbmU7b3BhY2l0eToxO2NvbG9yOiMwMDAwMDA7ZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDo2O21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6U2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOlNhbnMiIGQ9Ik0gMTguNjg3NSA1IEEgMy4wMDAzIDMuMDAwMyAwIDAgMCAxNiA4IEwgMTYgOTIgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDE5IDk1IEwgODEgOTUgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDg0IDkyIEwgODQgMzQgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDc4IDM0IEwgNzggODkgTCAyMiA4OSBMIDIyIDExIEwgNjIgMTEgTCA2MiAyNCBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgNjUgMjcgTCA4MSAyNyBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgODMuMTI1IDIxLjg3NSBMIDY3LjEyNSA1Ljg3NSBBIDMuMDAwMyAzLjAwMDMgMCAwIDAgNjUgNSBMIDE5IDUgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDE4LjY4NzUgNSB6IE0gNjggMTUuMjE4NzUgTCA3My43ODEyNSAyMSBMIDY4IDIxIEwgNjggMTUuMjE4NzUgeiBNIDI3LjY4NzUgMjggQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDM0IEwgNTAgMzQgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDUwIDI4IEwgMjggMjggQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgMjggeiBNIDI3LjY4NzUgMzkgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDQ1IEwgNzIgNDUgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDM5IEwgMjggMzkgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgMzkgeiBNIDI3LjY4NzUgNTAgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDU2IEwgNzIgNTYgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDUwIEwgMjggNTAgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNTAgeiBNIDI3LjY4NzUgNjEgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDY3IEwgNzIgNjcgQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDYxIEwgMjggNjEgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNjEgeiBNIDI3LjY4NzUgNzIgQSAzLjAwNDA2NjMgMy4wMDQwNjYzIDAgMSAwIDI4IDc4IEwgNzIgNzggQSAzLjAwMDMgMy4wMDAzIDAgMSAwIDcyIDcyIEwgMjggNzIgQSAzLjAwMDMgMy4wMDAzIDAgMCAwIDI3LjY4NzUgNzIgeiAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOTUyLjM2MjE4KSI+PC9wYXRoPjwvZz48L3N2Zz4=" alt="Registration" />
+                        <div>Registration</div>
+                    </button>
+                </div>
             </div>
         </div>`;
     }
@@ -1462,7 +1417,7 @@ class Dashboard extends Component {
                 return false;
             }
 
-            if (violations && props['INSPECTION_INDICATOR'] != violations) {
+            if (violations && props['Inspection Indicator'] != violations) {
                 return false;
             }
 
@@ -1484,7 +1439,7 @@ class Dashboard extends Component {
             }
 
             if (search) {
-                const searchString = props['MINE_ID'] + props['LESSEE_NAME'];
+                const searchString = props['BHOOMI_ID'] + props['MAKAAN_ID'] + props['SURVEY_NO'] + props['CURRENT_PROPERTY_OWNER'];
                 if (search && searchString.toLowerCase().includes(search.toLowerCase())) {
                     return true;
                 }
@@ -1554,7 +1509,6 @@ class Dashboard extends Component {
     }
 }
 
-
 class App extends Component {
     init() {
         this.data = {};
@@ -1574,17 +1528,17 @@ class App extends Component {
                 <h1>
                     <div class="logoTop">
                         <img src="/img/airservelogo.png" alt="AirServe" />
-                        
+                        T-360
                     </div>
                     <div class="logoBottom">
-                    Department of Mines and Geology Viewer
+                        Dharani Property Viewer
                     </div>
                 </h1>
-               
             </header>
-            <div style="position: absolute;right: 10px;top:14px;"> <a href="/logout"><button id="logoutbtn">Logout</button></a></div>
+            <div style="position: absolute;right: 13px;top:3%;"> <a href="/logout"><button id="logoutbtn">Logout</button></a></div>
             ${this.dashboard.node}
         </div>`
+     
     }
 }
 

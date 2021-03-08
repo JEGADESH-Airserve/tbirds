@@ -1,6 +1,7 @@
 html,
 body {
     margin: 0;
+
     /* vars */
     --airserve-blue: rgb(1, 223, 255);
     --light-accent: #3878d9;
@@ -23,7 +24,6 @@ body {
     background: #fff;
     border: 2px solid var(--light-accent);
 }
-
 .filled {
     color: #fff;
     cursor: pointer;
@@ -31,17 +31,14 @@ body {
     border: 2px solid var(--light-accent);
     transition: background-color .2s, border-color 2s;
 }
-
 .filled:hover {
     background: var(--darker-accent);
     border: 2px solid var(--darker-accent);
 }
-
 .padded {
     padding: .3em .9em;
     border-radius: 3px;
 }
-
 
 /* resets */
 
@@ -57,13 +54,12 @@ input,
 button,
 select,
 option {
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
 select {
     cursor: pointer;
 }
-
 
 /* layout */
 
@@ -75,13 +71,14 @@ select {
     width: 100%;
     height: 100%;
     overflow: hidden;
+
     display: flex;
     flex-direction: column;
 }
 
 .App header {
     width: 100%;
-    height: 55px;
+    height: 70px;
     background: var(--dark-accent);
     flex-grow: 0;
     flex-shrink: 0;
@@ -100,13 +97,13 @@ select {
 }
 
 .App .logoTop img {
-    height: 28px;
+    height: 34px;
     margin-right: 6px;
 }
 
 .App .logoTop {
     color: var(--airserve-blue);
-    font-size: 26px;
+    font-size: 32px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -114,7 +111,7 @@ select {
 
 .App .logoBottom {
     color: #fff;
-    font-size: 10px;
+    font-size: 13px;
 }
 
 .Dashboard {
@@ -139,13 +136,12 @@ select {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    height: 40px;
+    height: 52px;
     flex-grow: 0;
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     background: #fff;
-    font-size: 13px;
 }
 
 .FilterBar-slot {
@@ -172,7 +168,7 @@ select {
 }
 
 .FilterBar-search-button {
-    padding: .2em 0;
+    padding: .3em 0;
     height: 2em;
     width: 2em;
     border-radius: 3px;
@@ -199,7 +195,7 @@ select {
 }
 
 .FilterBar-gap {
-    flex-grow: 8;
+    flex-grow: 10;
     flex-shrink: 0;
 }
 
@@ -215,7 +211,7 @@ select {
 
 .FilterPopup-body,
 .FilterPopup .buttonGroup {
-    padding: .5em;
+    padding: .8em;
 }
 
 .FilterPopup .buttonGroup {
@@ -248,7 +244,7 @@ select {
 }
 
 .FilterPopup select {
-    width: 12em;
+    width: 14em;
 }
 
 .GeoFilter-geos {
@@ -257,7 +253,7 @@ select {
 }
 
 .GeoFilter label {
-    margin-right: .7em;
+    margin-right: .8em;
 }
 
 .GeoFilter label:last-child {
@@ -277,7 +273,7 @@ select {
 .SearchComplete {
     position: relative;
     overflow: visible;
-    margin-right: .3em;
+    margin-right: .4em;
 }
 
 .SearchComplete-completions {
@@ -297,7 +293,7 @@ select {
 }
 
 .SearchComplete-suggestion {
-    padding: .3em .7em;
+    padding: .4em .8em;
     border-bottom: 1px solid #b7b7b7;
     cursor: pointer;
 }
@@ -312,7 +308,7 @@ select {
 }
 
 .PropertyTypeFilter {
-    width: 280px;
+    width: 320px;
 }
 
 .PropertyTypeFilter-label {
@@ -350,7 +346,7 @@ select {
 }
 
 .GeoFilter .filterPopupButton,
-.PropertyTypeFilter .filterPopupButton {
+.PropertyTypeFilter .filterPopupButton{
     float: right;
     cursor: pointer;
     color: var(--darker-accent);
@@ -371,7 +367,7 @@ select {
     top: 0;
     left: 0;
     z-index: 9999;
-    font-size: 13px;
+    font-size: 16px;
     color: #fff;
     text-shadow: 0 0 3px #000;
     font-weight: bold;
@@ -380,7 +376,7 @@ select {
 }
 
 .GeoOverlayView-propertyCount {
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .PropertyOverlayView {
@@ -452,12 +448,11 @@ select {
 .GoogleMap .mapButtonGroup button {
     background: #fff;
     border: 0;
-    padding: 5px 15px;
+    padding: 11px 15px;
     cursor: pointer;
     border-radius: 0;
     border-right: 1px solid #d7d7d7;
-    height: 30px;
-    /* match Google Maps default styles */
+    height: 40px; /* match Google Maps default styles */
 }
 
 .GoogleMap .mapButtonGroup button:first-child {
@@ -474,8 +469,8 @@ select {
 }
 
 .PropertyOverlayPopup {
-    min-height: 60px;
-    width: 180px;
+    min-height: 80px;
+    width: 210px;
     text-shadow: none;
     font-weight: normal;
     color: #000;
@@ -484,9 +479,9 @@ select {
     border-radius: 8px;
     display: flex;
     flex-direction: row;
-    padding: .33em;
+    padding: .5em;
     position: absolute;
-    bottom: 24px;
+    bottom: 28px;
     left: 50%;
     z-index: 99999;
     transform: translateX(-50%);
@@ -497,11 +492,11 @@ select {
     content: '';
     display: block;
     position: absolute;
-    bottom: -19px;
+    bottom: -21px;
     left: 50%;
     transform: translate(-50%, -84%) rotate(45deg);
-    height: 12px;
-    width: 12px;
+    height: 16px;
+    width: 16px;
     background: #fff;
 }
 
@@ -519,13 +514,13 @@ select {
 }
 
 .PropertyOverlayPopup p {
-    margin: 0;
+    margin: 4px 0;
 }
 
 .Sidebar {
     flex-grow: 0;
     flex-shrink: 0;
-    width: 480px;
+    width: 600px;
     box-shadow: -1px -4px 4px rgba(0, 0, 0, 0.2);
     z-index: 50;
 }
@@ -544,7 +539,7 @@ select {
     font-weight: bold;
     flex-grow: 0;
     padding: .8em 12px .4em 12px;
-    font-size: 1em;
+    font-size: 1.2em;
     box-sizing: border-box;
 }
 
@@ -558,15 +553,15 @@ select {
     float: left;
     padding: 6px;
     overflow: hidden;
-    font-size: .7em;
+    font-size: .9em;
     width: 50%;
     box-sizing: border-box;
 }
 
 .PlaceListingCard {
-    padding: 7px;
+    padding: 8px;
     box-sizing: border-box;
-    height: 450px;
+    height: 550px;
     position: relative;
     border-bottom: 4px solid var(--light-accent);
     background: #fff;
@@ -589,7 +584,7 @@ select {
 .PLC-image {
     overflow: hidden;
     width: 100%;
-    height: 165px;
+    height: 200px;
     background: linear-gradient(to bottom right, #e6eef7, #e1e1e7);
     display: flex;
     align-items: center;
@@ -615,7 +610,7 @@ select {
     left: 6px;
     background: rgba(0, 0, 0, .4);
     color: #fff;
-    padding: 0.2em .5em;
+    padding: 0.3em .6em;
 }
 
 .PLC-prop-id {
@@ -645,10 +640,6 @@ select {
 .PLC-image img {
     max-width: 100%;
     max-height: 100%;
-}
-
-.gm-style .controls.maptype-control.maptype-control-is-satellite .maptype-control-satellite {
-    font-weight: 700;
 }
 
 .PLC-detail {
@@ -719,7 +710,7 @@ select {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%,-50%);
     width: calc(100% - 2em);
     max-width: 900px;
     max-height: 90vh;
@@ -730,6 +721,7 @@ select {
     background: #fff;
     border-radius: 6px;
     box-shadow: 0 3px 10px -1px rgba(0, 0, 0, .3);
+
     display: flex;
     flex-direction: column;
 }
@@ -783,6 +775,7 @@ select {
     line-height: 60vh;
 }
 
+
 .CesiumLightbox-wrapper {
     position: absolute;
     top: 9%;
@@ -819,12 +812,22 @@ select {
 .userbtn,
 .login-btn,
 .submit-btn {
+    cursor: pointer;
+    float: left;
+    padding: .1em .4em;
+    margin-bottom: .4em;
+    margin-right: .4em;
+    font-weight: bold;
+    border-radius: 3px;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     background-color: var(--dark-accent);
-    border: 1px solid var( --airserve-blue);
-    font-size: 0.9em;
     color: var( --airserve-blue);
     border-radius: 20px;
-    padding: 0.2em 1em;
+    border: 2px solid var( --airserve-blue);
+   padding: 0.3em 1em;  
 }
 
 #logoutbtn:focus {

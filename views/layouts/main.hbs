@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>AirServe T-360</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     </link>
 
@@ -15,20 +15,20 @@
 </head>
 
 <body><div class="App"> 
-    <header>
+    <header >
 
         <h1>
-            <div class="logoTop">
-                <img src="/img/airservelogo.png" alt="AirServe" />
-                 
-            </div>
-            <div class="logoBottom">
-                Department of Mines and Geology Viewer
-            </div>
+            <div class="logoTop" style="font-family: 'Rajdhani';font-size: 28px;">
+                        <img src="/img/airservelogo.png" alt="AirServe" />
+                        T-360
+                    </div>
+                    <div class="logoBottom">
+                        Dharani Property Viewer
+                    </div>
         </h1>
         <div class="log-btn">
             {{#if user}}
-            <a href="/logout" ><button class="userbtn">Logout</button></a>
+            {{!-- <a href="/logout" ><button class="userbtn">Logout</button></a> --}}
             {{else if newuser}}
              {{!-- <a href="/" ><button  id="login" onclick="showlogin()" class="userbtn">Login</button></a> --}}
        

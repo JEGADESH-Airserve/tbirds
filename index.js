@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser")
 app.use(cookieParser())
 var jwt = require('jsonwebtoken');
 require('dotenv').config({ path: './SECRET/config.env' })
-const port = process.env.PORT || 3000;
+
 const jwtKey = process.env.Secretkey;
 mongoose.connect(process.env.Mongodb, {
     useNewUrlParser: true,
@@ -60,4 +60,4 @@ app.get('/logout', (req, res) => {
     res.clearCookie("token");
     res.redirect('/')
 })
-app.listen(port);
+app.listen(3000);
